@@ -46,22 +46,54 @@ class Board extends React.Component {
 class Game extends React.Component {
     render() {
         return (
-            <div className="game">
-                <div className="game-board">
-                    <Board />
+            [
+                <h1>Tic-Tac-Toe Gameboard</h1>,
+                <div className="game">
+                    <div className="game-board">
+                        <Board />
+                    </div>
+                    <div className="game-info">
+                        <div>{/* status */}</div>
+                        <ol>{/* TODO */}</ol>
+                    </div>
                 </div>
-                <div className="game-info">
-                    <div>{/* status */}</div>
-                    <ol>{/* TODO */}</ol>
-                </div>
+            ]
+        );
+    }
+}
+
+/**
+ * ShoppingList is a React Component.
+ *
+ * Each React Component has a render() method that describes what to be rendered on the screen,
+ * and it usually uses JSX (XML-like syntax) for convenience. Any JavaScript expression can be
+ * put inside braces, e.g. {this.props.name}.
+ *
+ * render() can refer to the component's props (properties) that are passed in during
+ * instantiation, e.g. <ShoppingList name="Jimmy Zong" />
+ *
+ * React elements are JavaScript objects that can be passed around.
+ */
+class ShoppingList extends React.Component {
+    render() {
+        return (
+            <div class="shopping-list">
+                <h1>Shopping List for {this.props.name}:</h1>
+                <ul>
+                    <li>Effective Java</li>
+                    <li>Clean Code</li>
+                    <li>Site Reliability Workbook</li>
+                </ul>
             </div>
         );
     }
 }
 
-// ========================================
-
+// The below are rendered on the page
 ReactDOM.render(
-    <Game />,
+    <div>
+        <ShoppingList name="Jimmy Zong" />
+        <Game />
+    </div>,
     document.getElementById('root')
 );
