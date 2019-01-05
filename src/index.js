@@ -60,16 +60,25 @@ class Board extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            squares: Array(9).fill(null)
+            squares: Array(9).fill(null),
+            nextMove: "🦄️"
         };
     }
 
     handleClick(i) {
+        // Ignore already occupied squares
+        if (this.state.squares[i] !== null) {
+            return;
+        }
+
         // Note the use of immutable array by making a hard copy with slice().
         // It allows for pure components in React.
         const currentSquares = this.state.squares.slice();
-        currentSquares[i] = "🦄️";
-        this.setState({ squares: currentSquares });
+        currentSquares[i] = this.state.nextMove;
+        this.setState({
+            squares: currentSquares,
+            nextMove: (this.state.nextMove === "🦊") ? "🦄️" : "🦊"
+        });
     }
 
     renderSquare(i) {
@@ -86,11 +95,9 @@ class Board extends React.Component {
     }
 
     render() {
-        const status = 'Next player: X';
-
         return (
             <div>
-                <div className="status">{status}</div>
+                <div className="status">Next Player: {this.state.nextMove}</div>
                 <div className="board-row">
                     {this.renderSquare(0)}
                     {this.renderSquare(1)}
