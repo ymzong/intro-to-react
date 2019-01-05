@@ -2,20 +2,11 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
 
-class Square extends React.Component {
-    /**
-     * React elements can have state by having a constructor that initializes this.state (as dict).
-     * In JavaScript, it's necessary to call super() when defining the constrctor of a subclass.
-     *
-     * State can be modified with this.setState({ k: v }).
-     */
-    constructor(props) {
-        super(props);
-        this.state = {
-            value: null
-        };
-    }
-
+/**
+ * The original states of Square have been lifted up to the Board.
+ * Square is now a controlled component.
+ */
+class SquareFullDefinition extends React.Component {
     render() {
         /**
          * We can specify onClick function with JavaScript between braces.
@@ -26,17 +17,72 @@ class Square extends React.Component {
         return (
             <button
                 className="square"
-                onClick={() => this.setState({ "value": "🦄️" })}
+                onClick={() => this.props.onClick()}
             >
-                {this.state.value}
+                {this.props.value}
             </button>
         );
     }
 }
 
+/**
+ * The following is the function component definition of Square, and it's suitable for components
+ * that only have `render()` method. It's equivalent to the full definition above.
+ *
+ * Prop of the component is passed in as the only parameter.
+ *
+ * Note that the onClick function no longer uses the arrow syntax, as it's only necessary to use
+ * arrow syntax to access the correct `this` in a class.
+ */
+function Square(props) {
+    return (
+        <button
+            className="square"
+            onClick={props.onClick}
+        >
+            {props.value}
+        </button>
+    );
+}
+
 class Board extends React.Component {
+    /**
+     *
+     * React elements can have state by having a constructor that initializes this.state (as dict).
+     * In JavaScript, it's necessary to call super() when defining the constrctor of a subclass.
+     *
+     * State can be modified with this.setState({ k: v }).
+     *
+     * Lifting state up from Square to Board allows Board to have information on all boards,
+     * such that it can render all Square elements and determine the winner easily.
+     * This is the clean, recommended approach.
+     */
+    constructor(props) {
+        super(props);
+        this.state = {
+            squares: Array(9).fill(null)
+        };
+    }
+
+    handleClick(i) {
+        // Note the use of immutable array by making a hard copy with slice().
+        // It allows for pure components in React.
+        const currentSquares = this.state.squares.slice();
+        currentSquares[i] = "🦄️";
+        this.setState({ squares: currentSquares });
+    }
+
     renderSquare(i) {
-        return <Square value={i} />;
+        /**
+         * In order for a click on Square to modify the state of Board, we need to pass down
+         * a function like this.handleClick(i) below.
+         */
+        return (
+            <Square
+                value={this.state.squares[i]}
+                onClick={() => this.handleClick(i)}
+            />
+        );
     }
 
     render() {
