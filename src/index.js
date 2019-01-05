@@ -1,6 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
+// Best practices for imports in ES6: https://stackoverflow.com/a/38469257/2448960
+import { determineWinner } from './utils.js';
 
 /**
  * The original states of Square have been lifted up to the Board.
@@ -66,8 +68,8 @@ class Board extends React.Component {
     }
 
     handleClick(i) {
-        // Ignore already occupied squares
-        if (this.state.squares[i] !== null) {
+        // Ignore already occupied squares or already won game
+        if (this.state.squares[i] !== null || determineWinner(this.state.squares)) {
             return;
         }
 
@@ -94,10 +96,21 @@ class Board extends React.Component {
         );
     }
 
+    /**
+     * By default, `render()` is invoked to refresh the component as well as its children whenever
+     * `setState` is called for the component.
+     */
     render() {
+        const winner = determineWinner(this.state.squares);
+        let headerMsg;
+        if (winner === null) {
+            headerMsg = "Next Player: " + this.state.nextMove;
+        } else {
+            headerMsg = "Winner is " + winner + "!";
+        }
         return (
             <div>
-                <div className="status">Next Player: {this.state.nextMove}</div>
+                <div className="status">{headerMsg}</div>
                 <div className="board-row">
                     {this.renderSquare(0)}
                     {this.renderSquare(1)}
