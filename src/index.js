@@ -47,70 +47,27 @@ function Square(props) {
     );
 }
 
+/**
+ * Board is a controlled component now that it doesn't have any states.
+ * Board status and next player are tracked in and passed down from Game.
+ */
 class Board extends React.Component {
-    /**
-     *
-     * React elements can have state by having a constructor that initializes this.state (as dict).
-     * In JavaScript, it's necessary to call super() when defining the constrctor of a subclass.
-     *
-     * State can be modified with this.setState({ k: v }).
-     *
-     * Lifting state up from Square to Board allows Board to have information on all boards,
-     * such that it can render all Square elements and determine the winner easily.
-     * This is the clean, recommended approach.
-     */
-    constructor(props) {
-        super(props);
-        this.state = {
-            squares: Array(9).fill(null),
-            nextMove: "🦄️"
-        };
-    }
-
-    handleClick(i) {
-        // Ignore already occupied squares or already won game
-        if (this.state.squares[i] !== null || determineWinner(this.state.squares)) {
-            return;
-        }
-
-        // Note the use of immutable array by making a hard copy with slice().
-        // It allows for pure components in React.
-        const currentSquares = this.state.squares.slice();
-        currentSquares[i] = this.state.nextMove;
-        this.setState({
-            squares: currentSquares,
-            nextMove: (this.state.nextMove === "🦊") ? "🦄️" : "🦊"
-        });
-    }
-
     renderSquare(i) {
         /**
-         * In order for a click on Square to modify the state of Board, we need to pass down
-         * a function like this.handleClick(i) below.
+         * In order for a click on Square to modify the state of Game, we need to pass down
+         * a function (`this.props.onClick(i)`) that is defined in Game.
          */
         return (
             <Square
-                value={this.state.squares[i]}
-                onClick={() => this.handleClick(i)}
+                value={this.props.squares[i]}
+                onClick={() => this.props.onClick(i)}
             />
         );
     }
 
-    /**
-     * By default, `render()` is invoked to refresh the component as well as its children whenever
-     * `setState` is called for the component.
-     */
     render() {
-        const winner = determineWinner(this.state.squares);
-        let headerMsg;
-        if (winner === null) {
-            headerMsg = "Next Player: " + this.state.nextMove;
-        } else {
-            headerMsg = "Winner is " + winner + "!";
-        }
         return (
             <div>
-                <div className="status">{headerMsg}</div>
                 <div className="board-row">
                     {this.renderSquare(0)}
                     {this.renderSquare(1)}
@@ -132,20 +89,79 @@ class Board extends React.Component {
 }
 
 class Game extends React.Component {
+    /**
+     *
+     * React elements can have state by having a constructor that initializes this.state (as dict).
+     * In JavaScript, it's necessary to call super() when defining the constrctor of a subclass.
+     *
+     * State can be modified with this.setState({ k: v }).
+     *
+     * Lifting state up from Square to Board and then Game allows Game to have complete information
+     * about the game, such that it can render the Board as well as all Square elements and
+     * determine the winner easily.
+     * 
+     * This is the clean, recommended approach.
+     */
+    constructor(props) {
+        super(props);
+        // history prop tracks all historical boards in an array; last element is the current board
+        this.state = {
+            history: [{ squares: Array(9).fill(null) }],
+            nextMove: "🦄️"
+        };
+    }
+
+    handleClick(i) {
+        const history = this.state.history;
+        const currentBoard = history[history.length - 1];
+
+        // Ignore already occupied squares or already won game
+        if (currentBoard.squares[i] !== null || determineWinner(currentBoard.squares)) {
+            return;
+        }
+
+        // Note the use of immutable array by making a hard copy with slice().
+        // It allows for pure components in React.
+        const currentSquares = currentBoard.squares.slice();
+        currentSquares[i] = this.state.nextMove;
+        this.setState({
+            history: history.concat([{ squares: currentSquares }]),
+            nextMove: (this.state.nextMove === "🦊") ? "🦄️" : "🦊"
+        });
+    }
+
+    /**
+     * By default, `render()` is invoked to refresh the component as well as its children (in this
+     * case, Board and Squares) whenever `setState` is called for the component.
+     */
     render() {
+        const history = this.state.history;
+        const currentBoard = history[history.length - 1];
+
+        const winner = determineWinner(currentBoard.squares);
+        let gameInfo;
+        if (winner === null) {
+            gameInfo = "Next Player: " + this.state.nextMove;
+        } else {
+            gameInfo = "Winner is " + winner + "!";
+        }
+
         return (
-            [
-                <h1>🦄️Tic-Tac-Toe Gameboard🦊</h1>,
+            <div className="game-area">
+                <h1 className="game-title">🦄️Tic-Tac-Toe Gameboard🦊</h1>
                 <div className="game">
                     <div className="game-board">
-                        <Board />
+                        <Board
+                            squares={currentBoard.squares}
+                            onClick={(i) => this.handleClick(i)}
+                        />
                     </div>
                     <div className="game-info">
-                        <div>{/* status */}</div>
+                        <div>{gameInfo}</div>
                         <ol>{/* TODO */}</ol>
                     </div>
                 </div>
-            ]
+            </div>
         );
     }
 }
@@ -165,7 +181,7 @@ class Game extends React.Component {
 class ShoppingList extends React.Component {
     render() {
         return (
-            <div class="shopping-list">
+            <div className="shopping-list">
                 <h1>Shopping List for {this.props.name}:</h1>
                 <ul>
                     <li>Effective Java</li>
