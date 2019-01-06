@@ -28,7 +28,7 @@ export function determineWinner(board) {
  * This helper generates texts on the rewind buttons.
  */
 export function generateRewindText(idx, player, position) {
-    if (idx == 0) {
+    if (idx === 0) {
         return "Go to game start";
     }
 

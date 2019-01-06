@@ -66,24 +66,23 @@ class Board extends React.Component {
     }
 
     render() {
+        const board = [];
+        for (let row = 0; row < 3; row++) {
+            const boardRow = [0, 1, 2].map((col) => {
+                const idx = 3 * row + col;
+                return (
+                    <Square
+                        value={this.props.squares[idx]}
+                        onClick={() => this.props.onClick(idx)}
+                        key={idx}
+                    />
+                );
+            });
+            board.push(<div className="board-row" key={row}>{boardRow}</div>)
+        }
+
         return (
-            <div>
-                <div className="board-row">
-                    {this.renderSquare(0)}
-                    {this.renderSquare(1)}
-                    {this.renderSquare(2)}
-                </div>
-                <div className="board-row">
-                    {this.renderSquare(3)}
-                    {this.renderSquare(4)}
-                    {this.renderSquare(5)}
-                </div>
-                <div className="board-row">
-                    {this.renderSquare(6)}
-                    {this.renderSquare(7)}
-                    {this.renderSquare(8)}
-                </div>
-            </div>
+            <div>{board}</div>
         );
     }
 }
@@ -108,7 +107,8 @@ class Game extends React.Component {
         this.state = {
             history: [{ squares: Array(9).fill(null), player: null, position: null }],
             nextMove: "🦄️",
-            stepNumber: 0
+            stepNumber: 0,
+            moveOrderReversed: false
         };
     }
 
@@ -143,6 +143,10 @@ class Game extends React.Component {
         });
     }
 
+    toggleMoveOrder(idx) {
+        this.setState({ moveOrderReversed: !this.state.moveOrderReversed });
+    }
+
     /**
      * By default, `render()` is invoked to refresh the component as well as its children (in this
      * case, Board and Squares) whenever `setState` is called for the component.
@@ -165,7 +169,7 @@ class Game extends React.Component {
          */
         const moves = history.map((elem, idx) => {
             const description = generateRewindText(idx, elem.player, elem.position);
-            const elementClass = (idx == this.state.stepNumber) ? "game-history-selected" : "";
+            const elementClass = (idx === this.state.stepNumber) ? "game-history-selected" : "";
             return (
                 <li key={idx} className={elementClass}>
                     <button
@@ -177,6 +181,10 @@ class Game extends React.Component {
                 </li>
             );
         });
+
+        if (this.state.moveOrderReversed) {
+            moves.reverse();
+        }
 
         return (
             <div className="game-area">
@@ -190,6 +198,7 @@ class Game extends React.Component {
                     </div>
                     <div className="game-info">
                         <div>{gameInfo}</div>
+                        <button onClick={() => this.toggleMoveOrder()}>Toggle Move Order</button>
                         <ol>{moves}</ol>
                     </div>
                 </div>
