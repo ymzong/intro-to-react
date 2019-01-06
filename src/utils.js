@@ -23,3 +23,16 @@ export function determineWinner(board) {
 
     return null;    // no winner found
 }
+
+/**
+ * This helper generates texts on the rewind buttons.
+ */
+export function generateRewindText(idx, player, position) {
+    if (idx == 0) {
+        return "Go to game start";
+    }
+
+    const row = Math.floor(position / 3);
+    const col = position % 3 + 1;
+    return `Go to move #${idx} (${player} at Row ${row} Col ${col})`;
+}

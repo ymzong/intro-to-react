@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
 // Best practices for imports in ES6: https://stackoverflow.com/a/38469257/2448960
-import { determineWinner } from './utils.js';
+import { determineWinner, generateRewindText } from './utils.js';
 
 /**
  * The original states of Square have been lifted up to the Board.
@@ -106,7 +106,7 @@ class Game extends React.Component {
         super(props);
         // history prop tracks all historical boards in an array; last element is the current board
         this.state = {
-            history: [{ squares: Array(9).fill(null) }],
+            history: [{ squares: Array(9).fill(null), player: null, position: null }],
             nextMove: "🦄️",
             stepNumber: 0
         };
@@ -126,7 +126,11 @@ class Game extends React.Component {
         const currentSquares = currentBoard.squares.slice();
         currentSquares[i] = this.state.nextMove;
         this.setState({
-            history: history.concat([{ squares: currentSquares }]),
+            history: history.concat([{
+                squares: currentSquares,
+                player: this.state.nextMove,
+                position: i
+            }]),
             nextMove: (this.state.nextMove === "🦊") ? "🦄️" : "🦊",
             stepNumber: history.length
         });
@@ -159,11 +163,17 @@ class Game extends React.Component {
          * In dynamic component lists like `moves`, it's important to specify a reasonable `key` to
          * each element such that React knows when to create, delete, or re-render elements.
          */
-        const moves = history.map((_, idx) => {
-            const description = (idx === 0) ? "Go to game start" : ("Go to move #" + idx);
+        const moves = history.map((elem, idx) => {
+            const description = generateRewindText(idx, elem.player, elem.position);
+            const elementClass = (idx == this.state.stepNumber) ? "game-history-selected" : "";
             return (
-                <li key={idx}>
-                    <button onClick={() => this.rewindBoard(idx)}>{description}</button>
+                <li key={idx} className={elementClass}>
+                    <button
+                        onClick={() => this.rewindBoard(idx)}
+                        className={elementClass}
+                    >
+                        {description}
+                    </button>
                 </li>
             );
         });
