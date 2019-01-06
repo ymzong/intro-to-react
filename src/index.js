@@ -107,13 +107,14 @@ class Game extends React.Component {
         // history prop tracks all historical boards in an array; last element is the current board
         this.state = {
             history: [{ squares: Array(9).fill(null) }],
-            nextMove: "🦄️"
+            nextMove: "🦄️",
+            stepNumber: 0
         };
     }
 
     handleClick(i) {
-        const history = this.state.history;
-        const currentBoard = history[history.length - 1];
+        const history = this.state.history.slice(0, this.state.stepNumber + 1);
+        const currentBoard = history[this.state.stepNumber];
 
         // Ignore already occupied squares or already won game
         if (currentBoard.squares[i] !== null || determineWinner(currentBoard.squares)) {
@@ -126,7 +127,15 @@ class Game extends React.Component {
         currentSquares[i] = this.state.nextMove;
         this.setState({
             history: history.concat([{ squares: currentSquares }]),
-            nextMove: (this.state.nextMove === "🦊") ? "🦄️" : "🦊"
+            nextMove: (this.state.nextMove === "🦊") ? "🦄️" : "🦊",
+            stepNumber: history.length
+        });
+    }
+
+    rewindBoard(idx) {
+        this.setState({
+            nextMove: ["🦄️", "🦊"][idx % 2],
+            stepNumber: idx
         });
     }
 
@@ -136,7 +145,7 @@ class Game extends React.Component {
      */
     render() {
         const history = this.state.history;
-        const currentBoard = history[history.length - 1];
+        const currentBoard = history[this.state.stepNumber];
 
         const winner = determineWinner(currentBoard.squares);
         let gameInfo;
@@ -145,6 +154,19 @@ class Game extends React.Component {
         } else {
             gameInfo = "Winner is " + winner + "!";
         }
+
+        /**
+         * In dynamic component lists like `moves`, it's important to specify a reasonable `key` to
+         * each element such that React knows when to create, delete, or re-render elements.
+         */
+        const moves = history.map((_, idx) => {
+            const description = (idx === 0) ? "Go to game start" : ("Go to move #" + idx);
+            return (
+                <li key={idx}>
+                    <button onClick={() => this.rewindBoard(idx)}>{description}</button>
+                </li>
+            );
+        });
 
         return (
             <div className="game-area">
@@ -158,7 +180,7 @@ class Game extends React.Component {
                     </div>
                     <div className="game-info">
                         <div>{gameInfo}</div>
-                        <ol>{/* TODO */}</ol>
+                        <ol>{moves}</ol>
                     </div>
                 </div>
             </div>
